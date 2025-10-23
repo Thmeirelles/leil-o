@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 st.set_page_config(layout="wide")
-st.image("leilão/imagens/ricardoauto.png")
+st.image("imagens/ricardoauto.png")
 @st.cache_data
 def load_data():
     return pd.read_csv("leilão/dados/tabela.csv")
@@ -317,6 +317,7 @@ with st.expander("📋 Visualizar Dados Brutos"):
         st.write(df["COR_AJUSTADA"].value_counts())
 st.markdown("---")
 #--------------------------------------------------------------------------
+
 
 
 
