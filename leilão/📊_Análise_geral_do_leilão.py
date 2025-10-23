@@ -4,11 +4,8 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
-def show_estrategia():
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        # Se a imagem estiver online
-        st.image("https://exemplo.com/ricardoauto.png", use_column_width=True)
+st.set_page_config(layout="wide")
+st.image("leilão/imagens/ricardoauto.png")
 @st.cache_data
 def load_data():
     return pd.read_csv("leilão/dados/tabela.csv")
@@ -320,5 +317,6 @@ with st.expander("📋 Visualizar Dados Brutos"):
         st.write(df["COR_AJUSTADA"].value_counts())
 st.markdown("---")
 #--------------------------------------------------------------------------
+
 
 
