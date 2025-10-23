@@ -3,13 +3,8 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
-import os
-current_dir = os.path.dirname(__file__)
-image_path = os.path.join(current_dir, "imagens", "ricardoauto.png")
-if os.path.exists(image_path):
-    st.image(image_path)
-else:
-    st.error(f"Imagem não encontrada em: {image_path}")
+st.set_page_config(layout="wide")
+st.image("leilão/imagens/ricardoauto.png")
 @st.cache_data
 def load_data():
     return pd.read_csv("leilão/dados/tabela.csv")
@@ -321,6 +316,7 @@ with st.expander("📋 Visualizar Dados Brutos"):
         st.write(df["COR_AJUSTADA"].value_counts())
 st.markdown("---")
 #--------------------------------------------------------------------------
+
 
 
 
