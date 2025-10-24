@@ -8,20 +8,17 @@ def load_data():
     Carrega e limpa os dados - CORRIGIDO
     """
     try:
-        df = pd.read_csv('leilão/dados/tabela.csv')  # Ajuste o caminho se necessário
+        df = pd.read_csv('leilão/dados/tabela.csv')
         
-        # CORREÇÃO: Converter valores monetários
         currency_columns = ['AVALIAÇÃO', 'Lance Inicial', 'Valor da Arrematação']
         
         for col in currency_columns:
             if df[col].dtype == 'object':
-                # Remover R$, pontos e converter vírgula para ponto
                 df[col] = df[col].str.replace('R$', '', regex=False)
                 df[col] = df[col].str.replace('.', '', regex=False)
                 df[col] = df[col].str.replace(',', '.', regex=False)
                 df[col] = df[col].str.strip()
             
-            # Converter para numérico
             df[col] = pd.to_numeric(df[col], errors='coerce')
         
         return df
@@ -38,10 +35,8 @@ def calcular_lances_estrategicos(df):
     if df is None:
         return {}
     
-    # Filtrar apenas veículos arrematados
     df_arrematados = df[df['Valor da Arrematação'].notna()]
     
-    # CORREÇÃO: Verificar se há dados
     if len(df_arrematados) == 0:
         st.warning("⚠️ Nenhum veículo foi arrematado nos dados.")
         return {}
@@ -56,22 +51,18 @@ def calcular_lances_estrategicos(df):
         
         if len(dados) > 0:
             try:
-                # CORREÇÃO: Verificar se há valores válidos
                 valores_validos = dados['Valor da Arrematação'].dropna()
                 if len(valores_validos) == 0:
                     continue
                 
-                # Estatísticas básicas
                 media_arremate = valores_validos.mean()
                 mediana_arremate = valores_validos.median()
                 percentil_75 = valores_validos.quantile(0.75)
                 percentil_90 = valores_validos.quantile(0.90)
                 
-                # Estratégia: percentil 75 como "lance competitivo seguro"
                 lance_recomendado = percentil_75
                 lance_maximo = percentil_90
                 
-                # Taxa de sucesso histórica para esse valor
                 taxa_sucesso = (len(valores_validos[valores_validos <= lance_recomendado]) / len(valores_validos)) * 100
                 
                 estrategia[categoria] = {
@@ -104,31 +95,27 @@ def analise_viabilidade_caminhoes(df):
         return None
     
     try:
-        # CORREÇÃO: Usar apenas valores válidos
         valores_arremate_validos = caminhoes_arrematados['Valor da Arrematação'].dropna()
         valores_avaliacao_validos = caminhoes_arrematados['AVALIAÇÃO'].dropna()
         
         if len(valores_arremate_validos) == 0 or len(valores_avaliacao_validos) == 0:
             return None
         
-        # Análise de custos
         investimento_medio = valores_arremate_validos.mean()
         avaliacao_media = valores_avaliacao_validos.mean()
         desconto_medio = ((avaliacao_media - investimento_medio) / avaliacao_media) * 100
         
-        # Estimativa de receita (valores de mercado para aluguel de caminhões)
-        diaria_estimada = 800  # R$ por dia para caminhão médio
-        utilizacao_mensal = 20  # dias por mês
+        diaria_estimada = 800
+        utilizacao_mensal = 20
         receita_mensal_estimada = diaria_estimada * utilizacao_mensal
         
-        # Payback simples
         payback_meses = investimento_medio / receita_mensal_estimada
         
         # ROI anual estimado
         receita_anual = receita_mensal_estimada * 12
-        custos_manutencao = receita_anual * 0.3  # 30% para custos operacionais
+        custos_manutencao = receita_anual * 0.3
         lucro_anual_estimado = receita_anual - custos_manutencao
-        # CORREÇÃO: Evitar divisão por zero
+        
         if investimento_medio > 0:
             roi_anual = (lucro_anual_estimado / investimento_medio) * 100
         else:
@@ -154,25 +141,20 @@ def show_estrategia():
     st.title("🎯 Estratégia de Lances & Viabilidade")
     st.markdown("---")
     
-    # Carregar dados
     df = load_data()
     
     if df is None:
-        st.stop()  # Para a execução se não carregou dados
+        st.stop()
     
-    # Mostrar informações básicas dos dados
     st.sidebar.info(f"📊 **Dados Carregados:** {len(df)} veículos")
     
-    # Calculando estratégias
     estrategia = calcular_lances_estrategicos(df)
     viabilidade_caminhoes = analise_viabilidade_caminhoes(df)
     
-    # CORREÇÃO: Verificar se a estratégia tem dados
     if not estrategia:
         st.error("❌ Não foi possível calcular estratégias. Verifique os dados.")
         return
     
-    # SEÇÃO 1: RECOMENDAÇÕES DE LANCES (mantida visível como resumo)
     st.header("💰 Estratégia de Lances por Categoria")
     
     col1, col2, col3, col4 = st.columns(4)
@@ -265,14 +247,11 @@ def show_estrategia():
         else:
             st.warning("⚠️ Dados insuficientes para análise de caminhões")
     
-    # SEÇÃO 4: PLANO DE AÇÃO (em expander)
     with st.expander("📋 Plano de Ação Recomendado", expanded=False):
-        # CORREÇÃO: Preencher com valores reais
         lance_caminhao = estrategia.get('Caminhão', {}).get('lance_competitivo', 'N/A')
         lance_carro = estrategia.get('Carro', {}).get('lance_competitivo', 'N/A')
         lance_moto = estrategia.get('Moto', {}).get('lance_competitivo', 'N/A')
         
-        # Formatar valores
         if lance_caminhao != 'N/A':
             lance_caminhao = f"R$ {lance_caminhao:,.0f}"
         if lance_carro != 'N/A':
@@ -294,6 +273,6 @@ def show_estrategia():
         
         st.success("**Conclusão Final:** Foco em caminhões para aluguel apresenta melhor relação risco-retorno")
 
-# CORREÇÃO: Chamar a função para executar
 if __name__ == "__main__":
+
     show_estrategia()
