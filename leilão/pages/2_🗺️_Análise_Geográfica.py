@@ -5,17 +5,17 @@ import plotly.graph_objects as go
 import numpy as np
 from math import radians, sin, cos, sqrt, atan2
 
-# Configuração da página
+
 st.set_page_config(page_title="Análise Geográfica - Leilão de Veículos", layout="wide")
 
-# Título do aplicativo
+
 st.title("🌍 Análise Geográfica Estratégica - Mato Grosso")
 st.markdown("""
 **Ricardo Auto Leilões** - *Análise de Distribuição Territorial no Estado do Mato Grosso*
 """)
 st.markdown("---")
 
-# Dicionário de coordenadas dos municípios de Mato Grosso
+# Coordenadas dos municípios de Mato Grosso
 COORDENADAS_MUNICIPIOS = {
     'Diamantino': {'lat': -14.4086, 'lon': -56.4464},
     'Cuiabá': {'lat': -15.6010, 'lon': -56.0974},
@@ -33,18 +33,14 @@ COORDENADAS_MUNICIPIOS = {
     'Água Boa': {'lat': -14.0500, 'lon': -52.1600}
 }
 
-# Função para carregar e limpar os dados
 @st.cache_data
 def load_data():
     try:
-        # Lendo o arquivo CSV
         df = pd.read_csv('leilão/dados/tabela.csv', encoding='utf-8')
         
-        # Filtrando apenas municípios de Mato Grosso
         municipios_mt = list(COORDENADAS_MUNICIPIOS.keys())
         df = df[df['MUNICÍPIO'].isin(municipios_mt)]
         
-        # Limpando e convertendo valores monetários
         currency_columns = ['AVALIAÇÃO', 'Lance Inicial', 'Valor da Arrematação']
         
         for col in currency_columns:
@@ -52,16 +48,14 @@ def load_data():
                 df[col] = df[col].str.replace('R$', '').str.replace('.', '').str.replace(',', '.').str.strip()
             df[col] = pd.to_numeric(df[col], errors='coerce')
         
-        # Adicionando coordenadas
         df['lat'] = df['MUNICÍPIO'].map(lambda x: COORDENADAS_MUNICIPIOS.get(x, {}).get('lat', np.nan))
         df['lon'] = df['MUNICÍPIO'].map(lambda x: COORDENADAS_MUNICIPIOS.get(x, {}).get('lon', np.nan))
         
-        # Criando categorias de valor
         df['Categoria Valor'] = pd.cut(df['AVALIAÇÃO'], 
                                      bins=[0, 15000, 50000, 100000, float('inf')],
                                      labels=['Econômico', 'Médio', 'Alto', 'Premium'])
         
-        # Calculando eficiência de arrematação
+
         df['Eficiência Arrematação'] = (df['Valor da Arrematação'] / df['AVALIAÇÃO']).fillna(0)
         
         return df
@@ -70,38 +64,33 @@ def load_data():
         st.error(f"❌ Erro ao carregar dados: {str(e)}")
         return pd.DataFrame()
 
-# Carregando os dados
 df = load_data()
 
 if df.empty:
     st.warning("⚠️ Nenhum dado foi carregado. Verifique o arquivo CSV.")
     st.stop()
 
-# Sidebar com filtros
 st.sidebar.header("🎯 Filtros Estratégicos")
 
-# Filtro por município
 municipios = st.sidebar.multiselect(
     "Município:",
     options=sorted(df['MUNICÍPIO'].unique()),
     default=sorted(df['MUNICÍPIO'].unique())
 )
 
-# Filtro por categoria de valor
 categorias = st.sidebar.multiselect(
     "Categoria de Valor:",
     options=df['Categoria Valor'].unique(),
     default=df['Categoria Valor'].unique()
 )
 
-# Filtro por tipo de veículo
 tipos = st.sidebar.multiselect(
     "Tipo de Veículo:",
     options=df['TIPO'].unique(),
     default=df['TIPO'].unique()
 )
 
-# Aplicando filtros
+
 df_filtered = df[
     (df['MUNICÍPIO'].isin(municipios)) & 
     (df['Categoria Valor'].isin(categorias)) &
@@ -112,7 +101,6 @@ if df_filtered.empty:
     st.warning("🚫 Nenhum dado encontrado com os filtros selecionados.")
     st.stop()
 
-# KPI's Estratégicos
 st.subheader("📊 Indicadores Estratégicos - Mato Grosso")
 
 col1, col2, col3, col4 = st.columns(4)
@@ -140,11 +128,9 @@ with col4:
     municipios_ativos = df_filtered['MUNICÍPIO'].nunique()
     st.metric("Municípios Ativos", municipios_ativos)
 
-# Mapa Interativo de Oportunidades
 st.markdown("---")
 st.subheader("🗺️ Mapa de Oportunidades - Mato Grosso")
 
-# Calculando métricas por município
 municipio_stats = df_filtered.groupby('MUNICÍPIO').agg({
     'AVALIAÇÃO': ['count', 'sum', 'mean'],
     'Valor da Arrematação': ['sum', lambda x: x.notna().sum()],
@@ -159,7 +145,6 @@ municipio_stats.columns = ['Qtd Lotes', 'Valor Total', 'Valor Médio',
 
 municipio_stats = municipio_stats.reset_index()
 
-# Mapa de Oportunidades
 fig_oportunidades = px.scatter_mapbox(
     municipio_stats,
     lat="lat",
@@ -189,14 +174,12 @@ fig_oportunidades.update_layout(
 
 st.plotly_chart(fig_oportunidades, use_container_width=True)
 
-# Análise Comparativa por Município
 st.markdown("---")
 st.subheader("📈 Análise Comparativa por Município")
 
 col_analise1, col_analise2 = st.columns(2)
 
 with col_analise1:
-    # Gráfico de barras - Valor total por município
     fig_valor_municipio = px.bar(
         municipio_stats.nlargest(10, 'Valor Total'),
         x='MUNICÍPIO',
@@ -209,7 +192,6 @@ with col_analise1:
     st.plotly_chart(fig_valor_municipio, use_container_width=True)
 
 with col_analise2:
-    # Gráfico de eficiência
     fig_eficiencia = px.bar(
         municipio_stats.nlargest(10, 'Eficiência Média'),
         x='MUNICÍPIO',
@@ -222,11 +204,9 @@ with col_analise2:
     fig_eficiencia.update_yaxes(tickformat=".1%")
     st.plotly_chart(fig_eficiencia, use_container_width=True)
 
-# Heatmap de Concentração
 st.markdown("---")
 st.subheader("🔥 Heatmap de Concentração de Valor")
 
-# Preparando dados para heatmap
 df_heatmap = df_filtered[df_filtered['lat'].notna()].copy()
 
 if not df_heatmap.empty:
@@ -250,11 +230,9 @@ if not df_heatmap.empty:
     
     st.plotly_chart(fig_heatmap, use_container_width=True)
 
-# Análise de Segmentação por Município
 st.markdown("---")
 st.subheader("🏙️ Segmentação por Município")
 
-# Calculando métricas para análise de oportunidades
 municipio_opp = df_filtered.groupby('MUNICÍPIO').agg({
     'AVALIAÇÃO': ['count', 'sum'],
     'Valor da Arrematação': lambda x: x.notna().sum(),
@@ -264,10 +242,8 @@ municipio_opp = df_filtered.groupby('MUNICÍPIO').agg({
 municipio_opp.columns = ['Qtd Lotes', 'Valor Total', 'Lotes Arrematados', 'Eficiência Média']
 municipio_opp = municipio_opp.reset_index()
 
-# Calculando taxa de arrematação
 municipio_opp['Taxa Arrematação'] = (municipio_opp['Lotes Arrematados'] / municipio_opp['Qtd Lotes'] * 100).round(1)
 
-# Classificação de oportunidades
 def classificar_oportunidade(row):
     if row['Taxa Arrematação'] < 50 and row['Valor Total'] > 100000:
         return 'Alta Oportunidade'
@@ -278,7 +254,6 @@ def classificar_oportunidade(row):
 
 municipio_opp['Classificação'] = municipio_opp.apply(classificar_oportunidade, axis=1)
 
-# Gráfico de oportunidades
 fig_oportunidades_municipio = px.scatter(
     municipio_opp,
     x='Taxa Arrematação',
@@ -296,43 +271,36 @@ fig_oportunidades_municipio = px.scatter(
 
 st.plotly_chart(fig_oportunidades_municipio, use_container_width=True)
 
-# Tabela de Recomendações Estratégicas
 st.markdown("---")
 st.subheader("💡 Recomendações Estratégicas")
 
-# Gerando recomendações baseadas nos dados
 recomendacoes = []
 
-# Análise por município
 alta_oportunidade = municipio_opp[municipio_opp['Classificação'] == 'Alta Oportunidade']
 if not alta_oportunidade.empty:
     for _, municipio in alta_oportunidade.nlargest(3, 'Valor Total').iterrows():
         recomendacoes.append(f"**{municipio['MUNICÍPIO']}**: Potencial não explorado - {municipio['Qtd Lotes']} lotes disponíveis com apenas {municipio['Taxa Arrematação']}% de arrematação.")
 
-# Municípios com maior valor disponível
 top_valor_disponivel = municipio_opp.nlargest(3, 'Valor Total')
 for _, municipio in top_valor_disponivel.iterrows():
     if municipio['MUNICÍPIO'] not in [r.split('**')[1].split('**')[0] for r in recomendacoes if '**' in r]:
         recomendacoes.append(f"**{municipio['MUNICÍPIO']}**: Maior valor total em leilão - R$ {municipio['Valor Total']:,.0f}")
 
-# Exibindo recomendações
 if recomendacoes:
     for rec in recomendacoes:
         st.info(rec)
 else:
     st.success("✅ Todas as regiões estão com boa performance!")
 
-# Dashboard Interativo de Performance
+
 st.markdown("---")
 st.subheader("📊 Dashboard de Performance Municipal")
 
-# Selecionador de métrica
 metrica = st.selectbox(
     "Selecione a Métrica para Análise:",
     ['Valor Total', 'Qtd Lotes', 'Eficiência Média', 'Taxa Arrematação']
 )
 
-# Gráfico de performance
 if metrica in ['Valor Total', 'Qtd Lotes']:
     fig_performance = px.bar(
         municipio_stats.nlargest(15, metrica),
@@ -376,4 +344,5 @@ st.sidebar.info("""
 - **🟢 Alta (80-100%)**: Mercado aquecido, bom interesse
 - **🟡 Média (60-80%)**: Mercado estável, performance normal  
 - **🔴 Baixa (0-60%)**: Mercado fraco, necessita ações
+
 """)
