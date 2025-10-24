@@ -5,7 +5,6 @@ def sobre_page():
     st.title("👨‍💻 Sobre o Projeto")
     st.markdown("---")
     
-    # Seção de Desenvolvedores - Destaque maior para o desenvolvedor
     st.header("👥 Desenvolvimento")
     
     st.markdown("""
@@ -36,7 +35,6 @@ def sobre_page():
         *Desenvolvimento do trabalho*
         """)
     
-    # Seção do Projeto
     st.markdown("---")
     st.header("📚 Contexto Acadêmico")
     
@@ -48,7 +46,6 @@ def sobre_page():
     em um contexto de negócios, simulando a operação de uma empresa de leilões.
     """)
     
-    # Repositórios
     st.markdown("---")
     st.header("📂 Repositórios")
     
@@ -65,7 +62,6 @@ def sobre_page():
         [github.com/Thmeirelles/leil-](https://github.com/Thmeirelles/leil-)
         """)
     
-    # Stack Tecnológica
     st.markdown("---")
     st.header("🛠️ Stack Tecnológica")
     
@@ -94,7 +90,6 @@ def sobre_page():
     - Análise de tendências e padrões
     """)
     
-    # Agradecimentos
     st.markdown("---")
     st.header("🙏 Agradecimentos")
     
@@ -112,7 +107,6 @@ def sobre_page():
     a apresentação deste trabalho acadêmico.
     """)
     
-    # Objetivos Acadêmicos
     st.markdown("---")
     st.header("🎯 Objetivos Acadêmicos")
     
@@ -128,12 +122,8 @@ def sobre_page():
     - Contextualização em um problema de negócios real
     """)
     
-    # Informações da Instituição
     st.markdown("---")
     st.header("🏫 Instituição de Ensino")
-    
-    # Logo da UFBA
-    
     
     st.markdown("""
     **Universidade Federal da Bahia (UFBA)**  
@@ -145,9 +135,9 @@ def sobre_page():
     try:
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            ufba_logo = Image.open('leilão/imagens/logo_ufba.jpg')  # Ajuste o caminho
+            ufba_logo = Image.open('leilão/imagens/logo_ufba.jpg')
             st.image(ufba_logo, width=200)
     except:
         st.info("Logo da UFBA")
-# Chamada da função
+        
 sobre_page()
