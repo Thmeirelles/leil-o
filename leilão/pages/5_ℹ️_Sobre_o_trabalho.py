@@ -135,9 +135,10 @@ def sobre_page():
     try:
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            ufba_logo = Image.open('leilão/imagens/logo_ufba.jpg')
+            ufba_logo = Image.open('https://github.com/Thmeirelles/leil-o/blob/main/leil%C3%A3o/Imagens/logo_ufba.jpg')
             st.image(ufba_logo, width=200)
     except:
         st.info("Logo da UFBA")
         
 sobre_page()
+
